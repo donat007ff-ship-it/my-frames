@@ -85,7 +85,7 @@ def generate_segment_audio(text, voice_name, model, api_key, raw_out_path, wav_o
     headers = {"Content-Type": "application/json"}
     data = json.dumps(payload).encode("utf-8")
 
-    max_retries = 5
+    max_retries = 8
     for attempt in range(1, max_retries + 1):
         try:
             req = urllib.request.Request(url, data=data, headers=headers)
@@ -124,7 +124,7 @@ def generate_segment_audio(text, voice_name, model, api_key, raw_out_path, wav_o
 
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                wait_sec = 20 * attempt
+                wait_sec = 25 * attempt
                 print(f"   ⏳ Rate limit (429). Retrying in {wait_sec}s (attempt {attempt}/{max_retries})...")
                 time.sleep(wait_sec)
             else:
@@ -213,13 +213,13 @@ def main():
 
         # Pace requests to respect rate limits
         if idx < len(segments) - 1:
-            time.sleep(12)
+            time.sleep(22)
 
     if not wav_files:
         print("❌ No audio clips were successfully generated.")
-        if os.path.exists(args.video):
+        if video_path and os.path.exists(video_path):
             os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
-            shutil.copyfile(args.video, args.output)
+            shutil.copyfile(video_path, args.output)
         sys.exit(0)
 
     print(f"\n=== Assembling Master Voice Track ({total_duration}s) ===")
