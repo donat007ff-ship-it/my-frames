@@ -1,2 +1,8 @@
 node_modules
 *.mp4
+*.wav
+*.pcm
+audio_work/
+renders/
+out/
+.env

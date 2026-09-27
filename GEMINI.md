@@ -120,9 +120,9 @@ motion-design-skills/scripts/probe-mp4.sh ~/storage/downloads/ahyperframes/*.mp4
 
 ## Команды пайплайна
 
-**1. Отправка изменений на рендер**
+**1. Отправка изменений на рендер и озвучку**
 ```bash
-git add index.html && git commit -m "Update video scene" && git push
+git add index.html voiceover.json && git commit -m "Update video scene & voiceover" && git push
 ```
 
 **2. Мониторинг сборки**
@@ -138,84 +138,33 @@ gh run download \
   -n rendered-video -D ~/storage/downloads/ahyperframes/
 ```
 
-**3. Скачивание готового MP4 на телефон**
+**3. Скачивание готового озвученного MP4 на телефон**
 ```bash
 gh run download -n rendered-video -D ~/storage/downloads/ahyperframes/
 ```
 Флаг `-D` (заглавный) — обязателен, задаёт каталог назначения.
+Скачанный MP4 уже сведён с дикторским голосом!
 
 ---
 
 ## `.github/workflows/render.yml`
 
-```yaml
-name: Render HyperFrames Video
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - "index.html"
-      - "compositions/**"
-      - "assets/**"
-  workflow_dispatch: {}
-
-jobs:
-  render:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: System deps
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-
-      - name: Project deps
-        run: npm ci || npm install
-
-      - name: Render
-        run: npx hyperframes render --output out/video.mp4
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rendered-video
-          path: out/*.mp4
-          retention-days: 1
-```
-
-Изменения относительно черновика: `paths` в триггере (рендер не гоняется на
-каждый пуш в `main`, только при правках сцены/ассетов), `workflow_dispatch`
-для ручного перезапуска, `cache: npm`, явный `--output`, `npm ci` в приоритете.
-`workflow_dispatch` можно опустить, если он не нужен — не критично.
-
-Если рендер упадёт с ошибкой запуска браузера (sandbox/Chrome not found) —
-это единственное реалистичное узкое место `ubuntu-latest`-раннера для
-Puppeteer; добавь шаг `npx puppeteer browsers install chrome` перед `Render`.
+Пайплайн в GitHub Actions полностью автоматизирован:
+1. Запускает рендер кадров HyperFrames (`npx hyperframes render`).
+2. Запускает `scripts/generate_voiceover.py` с секретом `GEMINI_API_KEY`.
+3. Читает `voiceover.json`, генерирует озвучку сегментов через **Gemini 3.8 Flash TTS**.
+4. Через FFmpeg (`adelay` + `amix`) собирает мастер-аудиодорожку и сводит с видео (`-c:v copy -c:a aac`).
+5. Загружает финальный MP4 в артефакт `rendered-video`.
 
 ---
 
-## Что исправлено по сравнению с черновиком Gemini
+## Озвучка и голос (Gemini Flash TTS в GitHub Actions)
 
-1. `window.__timelines = [tl]` → это объект по ключу id композиции:
-   `window.__timelines["main"] = tl`.
-2. У корневой композиции обязательны ещё `data-start`, `data-width`,
-   `data-height` — не только `data-composition-id`/`data-duration`.
-3. Реальный текст ошибки другой (`window.__hf not ready...`), не
-   `"Composition has zero duration"` — на случай, если будешь грепать логи.
-4. Добавлен способ детерминированно скачать именно последний ран рендер-
-   воркфлоу (без интерактивного выбора в `gh`).
-5. В workflow добавлен `paths`-фильтр и `--output`, чтобы не рендерить
-   видео на каждый несвязанный пуш и не полагаться на `**/*.mp4`.
-
----
-
-## Озвучка и голос (Gemini Flash TTS)
-
-- **ОБЯЗАТЕЛЬНОЕ ПРАВИЛО:** Для генерации закадрового голоса и озвучки видео всегда использовать **Gemini Flash TTS** (`models/gemini-2.5-flash-preview-tts` / Gemini Flash TTS API).
+- **СТРОЖАЙШЕЕ ПРАВИЛО:** Для генерации закадрового голоса и озвучки видео ВСЕГДА использовать именно **Gemini 3.8 Flash TTS** (`models/gemini-3.8-flash-tts`).
+- **Конфигурация реплик:** Все реплики диктора, таймкоды (`start_sec`) и голоса хранятся в [`voiceover.json`](file:///data/data/com.termux/files/home/storage/downloads/ahyperframes/voiceover.json).
+- **Скрипт генератора:** [`scripts/generate_voiceover.py`](file:///data/data/com.termux/files/home/storage/downloads/ahyperframes/scripts/generate_voiceover.py) выполняется в CI/CD на GitHub Actions.
 - **Тембр по умолчанию:** `Charon` (глубокий, авторитетный документальный голос Vox) или `Fenrir` (энергичный).
 - **Синхронизация:** Озвучка генерируется по актам/сегментам сценария с точной временной привязкой по миллисекундам (`adelay` в FFmpeg), исключая наплывы звука на чужие сцены.
-- **Сведение:** Сведение дорожки с видео выполняется через `ffmpeg` локально в Termux без перекодирования видеопотока (`-c:v copy -c:a aac -b:a 192k -shortest`).
+- **Сведение:** Сведение дорожки с видео выполняется в облаке GitHub Actions без перекодирования видеопотока (`-c:v copy -c:a aac -b:a 192k -shortest`). На телефон через `gh run download` скачивается уже готовый ролик с диктором.
+- **Секрет:** `GEMINI_API_KEY` настроен в GitHub Secrets репозитория и автоматически передаётся в workflow.
 
