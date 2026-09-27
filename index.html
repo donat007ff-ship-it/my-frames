@@ -1,47 +1,1484 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>Vox Style: History of America in 60 Seconds</title>
+  
+  <!-- Editorial Google Fonts: Playfair Display (Serif), Oswald (Vox Display Bold), Inter (Clean Editorial), JetBrains Mono (Data/Coordinates) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Oswald:wght@500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  
+  <!-- GSAP 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
+    :root {
+      --paper-bg: #f5f2e9;
+      --paper-card: #fdfcf9;
+      --ink: #111215;
+      --ink-muted: #5a5f6b;
+      --ink-faint: #9ea3ae;
+      --vox-yellow: #ffdb00;
+      --vox-yellow-dark: #e5c400;
+      --union-blue: #1c3966;
+      --union-blue-light: #2b5494;
+      --confed-rust: #9e3636;
+      --confed-rust-light: #ba4747;
+      --territory-gold: #c89d38;
+      --territory-green: #3a7350;
+      --border-dark: #1f2229;
+      --grid-line: rgba(20, 24, 33, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d0e12;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* 1920x1080 Root Composition */
     #scene {
       width: 1920px;
       height: 1080px;
-      background: #090d16;
+      position: relative;
+      overflow: hidden;
+      background-color: var(--paper-bg);
+      color: var(--ink);
+    }
+
+    /* Archival Paper Texture and Technical Grid Overlay */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: 
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 60px 60px;
+      background-position: -1px -1px;
+      z-index: 1;
+    }
+
+    .bg-texture {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      z-index: 2;
+      mix-blend-mode: multiply;
+      background-image: radial-gradient(circle at 50% 50%, transparent 60%, rgba(30, 25, 15, 0.15) 100%);
+    }
+
+    /* Persistent Top HUD Bar */
+    .hud-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 50px;
+      border-bottom: 2px solid var(--border-dark);
+      background: rgba(245, 242, 233, 0.95);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .hud-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: -0.5px;
+    }
+
+    .vox-pill {
+      background: var(--vox-yellow);
+      color: var(--ink);
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      padding: 2px 10px;
+      line-height: 1.1;
+      border: 2px solid var(--ink);
+      letter-spacing: 0.5px;
+    }
+
+    .hud-chapter {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .chapter-tag {
+      background: var(--ink);
+      color: var(--vox-yellow);
+      padding: 3px 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hud-meta {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 14px;
+      color: var(--ink-muted);
+    }
+
+    .hud-meta strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    /* Persistent Bottom Timeline Scrubber */
+    .hud-timeline {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 76px;
+      background: #ffffff;
+      border-top: 2px solid var(--border-dark);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 50px 14px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .timeline-track-wrap {
+      position: relative;
+      width: 100%;
+      height: 12px;
+      background: #e4dfd0;
+      border: 1.5px solid var(--ink);
+      border-radius: 6px;
+      overflow: visible;
+    }
+
+    .timeline-progress-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: var(--vox-yellow);
+      border-right: 2px solid var(--ink);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .timeline-needle {
+      position: absolute;
+      top: -10px;
+      left: 0%;
+      width: 6px;
+      height: 32px;
+      background: var(--ink);
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .timeline-needle-bubble {
+      position: absolute;
+      bottom: 38px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
       color: #ffffff;
+      padding: 3px 10px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 4px;
+      white-space: nowrap;
+      border: 1.5px solid var(--vox-yellow);
+    }
+
+    .timeline-milestones {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      margin-top: 4px;
+    }
+
+    .timeline-milestone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .timeline-milestone.active {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .timeline-milestone.active::before {
+      content: '';
+      position: absolute;
+      top: -24px;
+      width: 8px;
+      height: 8px;
+      background: var(--ink);
+      border-radius: 50%;
+    }
+
+    /* Main Stage Camera Container */
+    #stage {
+      position: absolute;
+      top: 64px;
+      left: 0;
+      width: 1920px;
+      height: 940px;
+      overflow: hidden;
+      transform-origin: center center;
+    }
+
+    /* Map Graphic Container */
+    .map-canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 940px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-origin: 65% 50%;
+    }
+
+    svg.us-map {
+      width: 1380px;
+      height: 820px;
+      filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.08));
+    }
+
+    /* Map Paths & Styling */
+    .map-base-outline {
+      fill: #e8e3d5;
+      stroke: #2a2e37;
+      stroke-width: 2.5;
+      stroke-linejoin: round;
+    }
+
+    .territory-region {
+      transition: fill 0.3s ease, opacity 0.3s ease;
+      stroke: #1c202a;
+      stroke-width: 2;
+      stroke-linejoin: round;
+      fill-opacity: 0.95;
+    }
+
+    .region-original-13 {
+      fill: #d3dfed;
+      stroke: var(--union-blue);
+      stroke-width: 2.5;
+    }
+
+    .region-louisiana {
+      fill: #e5d8b8;
+      stroke: #333;
+    }
+
+    .region-texas {
+      fill: #e8d0c2;
+    }
+
+    .region-oregon {
+      fill: #cfe0cf;
+    }
+
+    .region-mexican-cession {
+      fill: #ebd5b7;
+    }
+
+    .region-confederacy {
+      fill: #d8b7b7;
+    }
+
+    .border-state {
+      fill: #e2dbce;
+    }
+
+    /* Dashed routes and trails */
+    .animated-trail {
+      fill: none;
+      stroke-dasharray: 10, 8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Vox Highlighter Effect */
+    .highlighter {
+      position: relative;
+      display: inline-block;
+      z-index: 1;
+    }
+
+    .highlighter::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: -4px;
+      width: 104%;
+      height: 40%;
+      background: var(--vox-yellow);
+      z-index: -1;
+      transform-origin: left center;
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+
+    .highlighter.lit::after {
+      transform: scaleX(1);
+    }
+
+    /* Archival Stamp */
+    .vox-stamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border: 3px solid var(--confed-rust);
+      color: var(--confed-rust);
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transform: rotate(-3deg) scale(0.9);
+      background: rgba(253, 252, 249, 0.9);
+      box-shadow: 0 4px 12px rgba(158, 54, 54, 0.15);
+      border-radius: 4px;
+    }
+
+    .vox-stamp.stamp-blue {
+      border-color: var(--union-blue);
+      color: var(--union-blue);
+      box-shadow: 0 4px 12px rgba(28, 57, 102, 0.15);
+    }
+
+    .vox-stamp.stamp-gold {
+      border-color: var(--territory-gold);
+      color: #926f1c;
+      box-shadow: 0 4px 12px rgba(200, 157, 56, 0.2);
+    }
+
+    /* Editorial Info Cards (Floating Callouts) */
+    .editorial-card {
+      position: absolute;
+      background: var(--paper-card);
+      border: 2px solid var(--border-dark);
+      box-shadow: 12px 16px 0px rgba(20, 24, 33, 0.95);
+      padding: 28px 32px;
+      border-radius: 2px;
+      z-index: 20;
+    }
+
+    .card-kicker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-kicker::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--vox-yellow);
+      border: 1px solid var(--ink);
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 38px;
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .card-body {
+      font-size: 18px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+
+    /* Big Metric Stat Box */
+    .stat-row {
+      display: flex;
+      gap: 30px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1.5px dashed #d5cfbf;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Scene Specific Overlays */
+    /* Scene 0 / Intro */
+    #clip-intro {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: flex-start;
+      padding: 0 160px;
+      z-index: 30;
+      background: rgba(245, 242, 233, 0.94);
+    }
+
+    .intro-badge {
+      display: inline-block;
+      background: var(--vox-yellow);
+      color: var(--ink);
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      padding: 6px 18px;
+      border: 2.5px solid var(--ink);
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .intro-h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 96px;
+      font-weight: 700;
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      max-width: 1400px;
+      margin-bottom: 24px;
+    }
+
+    .intro-sub {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 38px;
+      color: var(--ink-muted);
+      max-width: 1000px;
+      line-height: 1.3;
+    }
+
+    /* Scene 1: 13 Colonies Callout */
+    #clip-act1 {
+      position: absolute;
+      top: 60px;
+      left: 100px;
+      width: 580px;
+      opacity: 0;
+      transform: translateX(-40px);
+      z-index: 25;
+    }
+
+    /* Scene 2: Louisiana Purchase & Western Frontier */
+    #clip-act2 {
+      position: absolute;
+      top: 60px;
+      left: 100px;
+      width: 620px;
+      opacity: 0;
+      transform: translateX(-40px);
+      z-index: 25;
+    }
+
+    /* Scene 3: Civil War Callout */
+    #clip-act3 {
+      position: absolute;
+      top: 60px;
+      right: 120px;
+      width: 600px;
+      opacity: 0;
+      transform: translateX(40px);
+      z-index: 25;
+    }
+
+    /* Scene 4: Transcontinental Railroad & Industry */
+    #clip-act4 {
+      position: absolute;
+      top: 60px;
+      left: 100px;
+      width: 640px;
+      opacity: 0;
+      transform: translateX(-40px);
+      z-index: 25;
+    }
+
+    /* Scene 5: Modern 50-State Superpower & Outro */
+    #clip-act5 {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
       align-items: center;
-      font-family: system-ui, sans-serif;
-      overflow: hidden;
-    }
-    h1 {
-      font-size: 72px;
-      margin-bottom: 20px;
+      z-index: 35;
       opacity: 0;
-      transform: translateY(30px);
+      background: rgba(245, 242, 233, 0.96);
     }
-    p {
+
+    .recap-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+      width: 1600px;
+      margin-bottom: 50px;
+    }
+
+    .recap-box {
+      background: var(--paper-card);
+      border: 2px solid var(--border-dark);
+      padding: 30px 24px;
+      box-shadow: 8px 8px 0 var(--border-dark);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .recap-num-old {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      color: var(--ink-muted);
+      text-decoration: line-through;
+      margin-bottom: 4px;
+    }
+
+    .recap-num-new {
+      font-family: 'Oswald', sans-serif;
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .recap-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--union-blue);
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .conclusion-banner {
+      width: 1600px;
+      background: var(--ink);
+      color: #ffffff;
+      padding: 36px 50px;
+      border: 3px solid var(--vox-yellow);
+      box-shadow: 12px 12px 0 rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .conclusion-text {
+      font-family: 'Playfair Display', serif;
       font-size: 32px;
-      color: #94a3b8;
+      line-height: 1.35;
+      max-width: 1100px;
+    }
+
+    .conclusion-source {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #b3b9c6;
+    }
+
+    /* Parchment Document Artifact Box */
+    .parchment-doc {
+      margin-top: 16px;
+      padding: 16px 20px;
+      background: #eee8d8;
+      border: 1px solid #d0c7b2;
+      border-left: 5px solid var(--vox-yellow-dark);
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-style: italic;
+      color: #2b2b2b;
+      position: relative;
+    }
+
+    .parchment-seal {
+      position: absolute;
+      right: 15px;
+      bottom: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-style: normal;
+      color: #7b7565;
+      text-transform: uppercase;
+    }
+
+    /* Comparison Bar Chart (Act 4) */
+    .chart-container {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chart-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .chart-bar-country {
+      width: 70px;
+      font-weight: 700;
+    }
+
+    .chart-bar-bg {
+      flex: 1;
+      height: 20px;
+      background: #e6e0d2;
+      border: 1px solid var(--border-dark);
+      position: relative;
+    }
+
+    .chart-bar-fill {
+      height: 100%;
+      background: var(--ink);
+      width: 0%;
+      transition: width 0.8s ease;
+    }
+
+    .chart-bar-fill.highlight {
+      background: var(--vox-yellow);
+      border-right: 2px solid var(--ink);
+    }
+
+    .chart-bar-val {
+      width: 50px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    /* Coordinate Crosshairs */
+    .crosshair {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .crosshair::before, .crosshair::after {
+      content: '';
+      position: absolute;
+      background: var(--ink-faint);
+    }
+    .crosshair::before { top: 6px; left: 0; width: 14px; height: 2px; }
+    .crosshair::after { top: 0; left: 6px; width: 2px; height: 14px; }
+
+    /* Map Label Pins */
+    .map-pin {
+      position: absolute;
+      background: var(--ink);
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 2px;
+      border: 1.5px solid var(--vox-yellow);
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+      z-index: 22;
       opacity: 0;
+      transform: translateY(6px);
+    }
+
+    .map-pin::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0 6px;
+      border-style: solid;
+      border-color: var(--ink) transparent transparent transparent;
+    }
+
+    /* Golden Spike Callout Badge */
+    .golden-spike-badge {
+      position: absolute;
+      top: 380px;
+      left: 820px;
+      background: var(--vox-yellow);
+      border: 2px solid var(--ink);
+      padding: 8px 16px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      transform: scale(0);
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 50 Star Constellation Grid */
+    .stars-grid-overlay {
+      position: absolute;
+      bottom: 40px;
+      right: 60px;
+      display: grid;
+      grid-template-columns: repeat(10, 18px);
+      gap: 8px;
+      opacity: 0;
+      z-index: 22;
+    }
+
+    .star-dot {
+      width: 14px;
+      height: 14px;
+      background: var(--union-blue);
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      transform: scale(0);
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
-  <div id="scene" data-composition-id="main" data-duration="5">
-    <h1 id="title">HyperFrames Cloud Render</h1>
-    <p id="desc">Сгенерировано через GitHub Actions</p>
+
+  <!-- Root HyperFrames Composition -->
+  <div
+    id="scene"
+    data-composition-id="main"
+    data-start="0"
+    data-width="1920"
+    data-height="1080"
+    data-duration="60"
+  >
+    <!-- Background Texture & Technical Grid (Track 0) -->
+    <div class="clip bg-grid" data-track-index="0" data-start="0" data-duration="60"></div>
+    <div class="clip bg-texture" data-track-index="0" data-start="0" data-duration="60"></div>
+
+    <!-- Crosshair Marks on Canvas -->
+    <div class="crosshair" style="top: 120px; left: 80px;"></div>
+    <div class="crosshair" style="top: 120px; right: 80px;"></div>
+    <div class="crosshair" style="bottom: 120px; left: 80px;"></div>
+    <div class="crosshair" style="bottom: 120px; right: 80px;"></div>
+
+    <!-- HUD Header (Track 1) -->
+    <header class="clip hud-header" data-track-index="1" data-start="0" data-duration="60">
+      <div class="hud-brand">
+        <span class="vox-pill">VOX</span>
+        <span>ATLAS // VISUAL EXPLAINER</span>
+      </div>
+      <div class="hud-chapter">
+        <span class="chapter-tag" id="hudChapterTag">CHAPTER 01</span>
+        <span id="hudChapterTitle">THE 13 COLONIES &amp; INDEPENDENCE</span>
+      </div>
+      <div class="hud-meta">
+        <div>YEAR: <strong id="hudCurrentYear">1776</strong></div>
+        <div>TIME: <strong id="hudTimecode">00:00:00</strong></div>
+        <div>SCALE: <strong>1:5,000,000</strong></div>
+      </div>
+    </header>
+
+    <!-- Main Dynamic Stage (Track 2) -->
+    <div id="stage" class="clip" data-track-index="2" data-start="0" data-duration="60">
+      
+      <!-- Vector Map Canvas (SVG) -->
+      <div class="map-canvas-container" id="mapCanvas">
+        <svg class="us-map" viewBox="0 0 1100 680" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Diagonal Hatch Pattern for Louisiana Purchase -->
+            <pattern id="hatchGold" width="16" height="16" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="16" stroke="#c89d38" stroke-width="3" opacity="0.6" />
+            </pattern>
+            <!-- Blue Hatch for Union -->
+            <pattern id="hatchBlue" width="12" height="12" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="#1c3966" stroke-width="2.5" opacity="0.4" />
+            </pattern>
+            <!-- Red Hatch for Confederacy -->
+            <pattern id="hatchRed" width="12" height="12" patternTransform="rotate(-45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="#9e3636" stroke-width="2.5" opacity="0.4" />
+            </pattern>
+          </defs>
+
+          <!-- Continental US Outer Silhouette / Neutral Backdrop -->
+          <path id="usBaseOutline" class="map-base-outline" d="M 60,110 C 130,95 240,115 310,120 C 370,120 460,120 540,125 C 600,125 650,80 720,80 C 780,80 820,110 880,100 C 930,95 990,40 1020,40 C 1040,40 1055,80 1040,120 C 1020,160 980,210 940,240 C 930,270 910,310 900,360 C 895,420 890,470 910,510 C 915,535 905,570 890,580 C 865,560 840,480 810,480 C 760,490 730,520 680,510 C 650,510 630,470 590,480 C 560,490 530,540 500,580 C 470,610 440,630 420,590 C 390,560 380,520 340,490 C 290,490 240,470 190,450 C 140,450 110,400 90,340 C 70,270 50,180 60,110 Z" />
+
+          <!-- REGION 1: The Original 13 Colonies (Atlantic Seaboard, 1776) -->
+          <path id="region13Colonies" class="territory-region region-original-13" d="M 880,100 C 930,95 990,40 1020,40 C 1040,40 1055,80 1040,120 C 1020,160 980,210 940,240 C 930,270 910,310 900,360 C 895,420 890,470 910,510 C 915,535 905,570 890,580 C 870,550 855,470 835,420 C 815,350 810,260 820,210 C 830,170 850,130 880,100 Z" />
+
+          <!-- REGION 2: Trans-Appalachian Territory (Old Northwest & Southwest, 1783) -->
+          <path id="regionOldNorthwest" class="territory-region" fill="#ded7c4" opacity="0.6" d="M 720,80 C 780,80 820,110 880,100 C 850,130 830,170 820,210 C 810,260 815,350 835,420 C 855,470 870,550 890,580 C 865,560 840,480 810,480 C 760,490 730,520 680,510 C 660,440 660,340 670,270 C 675,200 680,140 720,80 Z" />
+
+          <!-- REGION 3: Louisiana Purchase (1803) - Central Basin -->
+          <path id="regionLouisiana" class="territory-region region-louisiana" fill="url(#hatchGold)" opacity="0" d="M 440,120 C 510,120 600,125 720,80 C 680,140 675,200 670,270 C 660,340 660,440 680,510 C 650,510 630,470 590,480 C 580,430 570,360 550,310 C 530,260 480,200 440,120 Z" />
+
+          <!-- REGION 4: Texas Annexation (1845) -->
+          <path id="regionTexas" class="territory-region region-texas" opacity="0" d="M 590,480 C 560,490 530,540 500,580 C 470,610 440,630 420,590 C 390,560 420,500 450,450 C 490,420 540,410 590,480 Z" />
+
+          <!-- REGION 5: Oregon Country (1846) - Pacific Northwest -->
+          <path id="regionOregon" class="territory-region region-oregon" opacity="0" d="M 60,110 C 130,95 240,115 310,120 C 290,190 280,260 250,300 C 180,300 130,280 90,260 C 70,200 50,150 60,110 Z" />
+
+          <!-- REGION 6: Mexican Cession (1848) - California & Southwest -->
+          <path id="regionMexicanCession" class="territory-region region-mexican-cession" opacity="0" d="M 310,120 C 370,120 440,120 480,200 C 450,280 430,360 450,450 C 400,470 350,470 300,470 C 250,460 200,450 170,430 C 130,400 100,340 90,260 C 130,280 180,300 250,300 C 280,260 290,190 310,120 Z" />
+
+          <!-- Civil War Factions Overlay (1861-1865) -->
+          <!-- Union States (North) -->
+          <path id="unionNorth" class="territory-region" fill="url(#hatchBlue)" opacity="0" d="M 60,110 C 300,110 540,125 720,80 C 780,80 880,100 1040,120 C 1000,220 950,270 850,270 C 750,280 670,290 600,300 C 450,300 300,310 150,320 C 100,280 70,200 60,110 Z" />
+
+          <!-- Confederate States (South) -->
+          <path id="confedSouth" class="territory-region" fill="url(#hatchRed)" opacity="0" d="M 600,300 C 670,290 750,280 850,270 C 920,270 940,330 900,420 C 890,520 890,580 810,480 C 730,520 650,510 590,480 C 560,490 530,540 500,580 C 450,520 480,430 520,380 C 560,330 580,310 600,300 Z" />
+
+          <!-- Mason-Dixon & Fracture Line -->
+          <path id="fractureLine" d="M 520,300 L 600,300 L 700,285 L 850,270 L 920,265" stroke="#ba2626" stroke-width="5" stroke-dasharray="12, 8" opacity="0" />
+
+          <!-- Oregon Trail / Pioneers Route (Act 2) -->
+          <path id="trailOregon" class="animated-trail" d="M 680,310 C 600,290 520,270 420,240 C 340,210 260,190 180,180" stroke="#c89d38" stroke-width="4.5" opacity="0" />
+
+          <!-- Transcontinental Railroad (Act 4) -->
+          <!-- Central Pacific (West -> East) -->
+          <path id="railWest" class="animated-trail" d="M 120,330 C 180,310 260,290 380,280" stroke="#1c3966" stroke-width="5" opacity="0" />
+          <!-- Union Pacific (East -> West) -->
+          <path id="railEast" class="animated-trail" d="M 640,290 C 540,285 450,282 380,280" stroke="#1c3966" stroke-width="5" opacity="0" />
+
+          <!-- Promontory Point Golden Spike Dot -->
+          <circle id="spikePoint" cx="380" cy="280" r="10" fill="#ffdb00" stroke="#111215" stroke-width="3" opacity="0" />
+        </svg>
+
+        <!-- Floating Interactive Map Pins -->
+        <div class="map-pin" id="pinPhilly" style="top: 260px; left: 1140px;">★ PHILADELPHIA (1776)</div>
+        <div class="map-pin" id="pinNOLA" style="top: 550px; left: 880px;">NEW ORLEANS ($15M)</div>
+        <div class="map-pin" id="pinSF" style="top: 360px; left: 320px;">SAN FRANCISCO (GOLD 1849)</div>
+        <div class="map-pin" id="pinDC" style="top: 310px; left: 1100px;">WASHINGTON D.C.</div>
+        <div class="map-pin" id="pinUtah" style="top: 320px; left: 620px;">PROMONTORY SUMMIT (1869)</div>
+
+        <!-- Golden Spike Slammed Badge -->
+        <div class="golden-spike-badge" id="spikeBadge">
+          <span>★</span>
+          <span>GOLDEN SPIKE DRIVEN: COAST-TO-COAST IN 6 DAYS</span>
+        </div>
+
+        <!-- 50 Stars Grid Indicator -->
+        <div class="stars-grid-overlay" id="starsOverlay">
+          <!-- 50 stars generated dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Editorial Storyboard Cards (Track 3) -->
+    
+    <!-- ACT 0: Kinetic Intro Hook (0s - 4.5s) -->
+    <div id="clip-intro" class="clip" data-track-index="3" data-start="0" data-duration="5">
+      <div class="intro-badge">VOX INVESTIGATES // US ATLAS</div>
+      <h1 class="intro-h1">
+        HOW 13 REBEL COLONIES BECAME A <span class="highlighter lit" id="hlSuperpower">GLOBAL SUPERPOWER</span>
+      </h1>
+      <p class="intro-sub">
+        A 60-second geographic autopsy of conquest, fracture, and unprecedented industrial expansion.
+      </p>
+    </div>
+
+    <!-- ACT 1: The 13 Colonies (4.5s - 14s) -->
+    <div id="clip-act1" class="clip editorial-card" data-track-index="3" data-start="4" data-duration="11">
+      <div class="card-kicker">ACT I // 1776 — 1789</div>
+      <h2 class="card-title">The Spark of Independence</h2>
+      <p class="card-body">
+        In July 1776, thirteen disparate British colonies along the Atlantic seaboard declared severance from the global British Empire.
+      </p>
+
+      <div class="parchment-doc">
+        &ldquo;We hold these truths to be self-evident, that all men are created equal...&rdquo;
+        <div class="parchment-seal">IN CONGRESS, JULY 4, 1776</div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <span class="vox-stamp stamp-blue">RATIFIED: 13 SOVEREIGN STATES</span>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="stat-value" id="valAct1Pop">2.5M</div>
+          <div class="stat-label">POPULATION (1776)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">430K</div>
+          <div class="stat-label">SQ. MILES</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">13</div>
+          <div class="stat-label">ORIGINAL STARS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 2: Western Expansion & Manifest Destiny (14s - 26s) -->
+    <div id="clip-act2" class="clip editorial-card" data-track-index="3" data-start="14" data-duration="13">
+      <div class="card-kicker">ACT II // 1803 — 1848</div>
+      <h2 class="card-title">Manifest Destiny</h2>
+      <p class="card-body">
+        Through the <strong class="highlighter lit">Louisiana Purchase (1803)</strong>, the annexation of Texas, and the 1848 Mexican Cession, the young republic expanded relentlessly from the Atlantic to the Pacific.
+      </p>
+
+      <div class="parchment-doc">
+        &ldquo;828,000 square miles purchased from France for $15,000,000 (~$0.04 per acre). Doubled the nation overnight.&rdquo;
+        <div class="parchment-seal">JEFFERSON // BONAPARTE</div>
+      </div>
+
+      <div style="margin-top: 14px; display: flex; gap: 10px;">
+        <span class="vox-stamp stamp-gold">COAST TO COAST</span>
+        <span class="vox-stamp stamp-gold">1849 GOLD RUSH</span>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="stat-value">+700%</div>
+          <div class="stat-label">TERRITORY GAIN</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">23.0M</div>
+          <div class="stat-label">POPULATION (1850)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">3,000 MI</div>
+          <div class="stat-label">SPAN OF CONTINENT</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 3: Civil War & The Preserved Union (26s - 38s) -->
+    <div id="clip-act3" class="clip editorial-card" data-track-index="3" data-start="26" data-duration="13">
+      <div class="card-kicker" style="color: var(--confed-rust);">ACT III // 1861 — 1865</div>
+      <h2 class="card-title" style="color: var(--confed-rust);">A House Divided</h2>
+      <p class="card-body">
+        The contradiction of human slavery erupted into total war. Eleven southern states seceded to form the Confederacy; four bloody years tested whether the nation could endure.
+      </p>
+
+      <div class="parchment-doc" style="border-left-color: var(--confed-rust);">
+        &ldquo;All persons held as slaves within any State... shall be then, thenceforward, and forever free.&rdquo;
+        <div class="parchment-seal">LINCOLN // JAN 1, 1863</div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <span class="vox-stamp" style="border-color: var(--confed-rust); color: var(--confed-rust);">
+          4M EMANCIPATED // UNION PRESERVED
+        </span>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="stat-value" style="color: var(--confed-rust);">750,000</div>
+          <div class="stat-label">CASUALTIES</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">13TH</div>
+          <div class="stat-label">AMENDMENT (1865)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">ONE</div>
+          <div class="stat-label">INDIVISIBLE UNION</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 4: The Industrial Engine & Transcontinental Boom (38s - 50s) -->
+    <div id="clip-act4" class="clip editorial-card" data-track-index="3" data-start="38" data-duration="13">
+      <div class="card-kicker">ACT IV // 1869 — 1945</div>
+      <h2 class="card-title">The Industrial Titan</h2>
+      <p class="card-body">
+        In 1869, the Transcontinental Railroad stitched east and west. Coal, steel, and assembly lines fueled the world's most ferocious economic transformation.
+      </p>
+
+      <!-- Vox Comparative Chart -->
+      <div class="chart-container">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--ink-muted);">
+          GLOBAL INDUSTRIAL OUTPUT (% BY 1913)
+        </div>
+        <div class="chart-bar-row">
+          <span class="chart-bar-country">USA</span>
+          <div class="chart-bar-bg">
+            <div class="chart-bar-fill highlight" id="barUSA" style="width: 32%;"></div>
+          </div>
+          <span class="chart-bar-val">32.0%</span>
+        </div>
+        <div class="chart-bar-row">
+          <span class="chart-bar-country">GER</span>
+          <div class="chart-bar-bg">
+            <div class="chart-bar-fill" style="width: 14.8%;"></div>
+          </div>
+          <span class="chart-bar-val">14.8%</span>
+        </div>
+        <div class="chart-bar-row">
+          <span class="chart-bar-country">UK</span>
+          <div class="chart-bar-bg">
+            <div class="chart-bar-fill" style="width: 13.6%;"></div>
+          </div>
+          <span class="chart-bar-val">13.6%</span>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="stat-value">6 DAYS</div>
+          <div class="stat-label">TRANSIT (WAS 6 MONTHS)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">#1</div>
+          <div class="stat-label">WORLD ECONOMY</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">1945</div>
+          <div class="stat-label">SUPERPOWER STATUS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 5: The 50 States & Modern Era Finale (50s - 60s) -->
+    <div id="clip-act5" class="clip" data-track-index="4" data-start="50" data-duration="10">
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        
+        <div style="margin-bottom: 24px;">
+          <span class="vox-pill" style="font-size: 26px; padding: 4px 16px;">THE 250-YEAR TRAJECTORY</span>
+        </div>
+
+        <div class="recap-grid">
+          <div class="recap-box">
+            <div class="recap-num-old">13 COLONIES</div>
+            <div class="recap-num-new" id="countStates">50</div>
+            <div class="recap-label">STATES &amp; TERRITORIES</div>
+          </div>
+          <div class="recap-box">
+            <div class="recap-num-old">2.5 MILLION</div>
+            <div class="recap-num-new" id="countPop">335M</div>
+            <div class="recap-label">POPULATION TODAY</div>
+          </div>
+          <div class="recap-box">
+            <div class="recap-num-old">430,000 SQ MI</div>
+            <div class="recap-num-new" id="countArea">3.8M</div>
+            <div class="recap-label">SQUARE MILES OF LAND</div>
+          </div>
+          <div class="recap-box">
+            <div class="recap-num-old">COLONIAL TRADE</div>
+            <div class="recap-num-new" id="countGdp">$28T</div>
+            <div class="recap-label">GROSS DOMESTIC PRODUCT</div>
+          </div>
+        </div>
+
+        <div class="conclusion-banner">
+          <div class="conclusion-text">
+            &ldquo;America was never an accident. It was a relentless, turbulent experiment in geographic scale, political struggle, and perpetual reinvention.&rdquo;
+          </div>
+          <div class="conclusion-source">
+            <div><strong>VOX ATLAS // EPISODE FINALE</strong></div>
+            <div>PRODUCED WITH HYPERFRAMES</div>
+            <div>DATA: US CENSUS &amp; NAT. ARCHIVES</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Persistent Bottom Timeline Controls (Track 1) -->
+    <footer class="clip hud-timeline" data-track-index="1" data-start="0" data-duration="60">
+      <div class="timeline-track-wrap">
+        <div class="timeline-progress-fill" id="timeProgressFill"></div>
+        <div class="timeline-needle" id="timeNeedle">
+          <div class="timeline-needle-bubble" id="needleYear">1776</div>
+        </div>
+      </div>
+      <div class="timeline-milestones">
+        <span class="timeline-milestone active" id="ms1776">1776 DECLARATION</span>
+        <span class="timeline-milestone" id="ms1803">1803 LOUISIANA</span>
+        <span class="timeline-milestone" id="ms1848">1848 PACIFIC</span>
+        <span class="timeline-milestone" id="ms1861">1861 CIVIL WAR</span>
+        <span class="timeline-milestone" id="ms1869">1869 RAILROAD</span>
+        <span class="timeline-milestone" id="ms1945">1945 SUPERPOWER</span>
+        <span class="timeline-milestone" id="msTODAY">2026 PRESENT</span>
+      </div>
+    </footer>
+
   </div>
 
+  <!-- Master Timeline Setup & Animation Script -->
   <script>
-    const tl = gsap.timeline();
-    tl.to("#title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" })
-      .to("#desc", { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.4");
-    window.__timelines = [tl];
+    // Create stars dynamically in DOM
+    const starsContainer = document.getElementById("starsOverlay");
+    for (let i = 0; i < 50; i++) {
+      const star = document.createElement("div");
+      star.className = "star-dot";
+      starsContainer.appendChild(star);
+    }
+
+    // Initialize GSAP Master Timeline (paused for HyperFrames headless driver)
+    const tl = gsap.timeline({ paused: true });
+
+    // HUD Elements
+    const hudChapterTag = document.getElementById("hudChapterTag");
+    const hudChapterTitle = document.getElementById("hudChapterTitle");
+    const hudCurrentYear = document.getElementById("hudCurrentYear");
+    const hudTimecode = document.getElementById("hudTimecode");
+    const needleYear = document.getElementById("needleYear");
+    const timeNeedle = document.getElementById("timeNeedle");
+    const timeProgressFill = document.getElementById("timeProgressFill");
+
+    // Helper to format 00:00:00
+    function updateTimecode(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      const f = Math.floor((seconds % 1) * 30).toString().padStart(2, '0');
+      hudTimecode.textContent = `${m}:${s}:${f}`;
+    }
+
+    // 1. Continuous Timeline Progress Scrubber (0s - 60s)
+    tl.to(timeNeedle, {
+      left: "100%",
+      duration: 60,
+      ease: "none"
+    }, 0);
+
+    tl.to(timeProgressFill, {
+      width: "100%",
+      duration: 60,
+      ease: "none"
+    }, 0);
+
+    // Continuous Timecode Counter across 60 seconds
+    tl.to({ sec: 0 }, {
+      sec: 60,
+      duration: 60,
+      ease: "none",
+      onUpdate: function() {
+        updateTimecode(this.targets()[0].sec);
+      }
+    }, 0);
+
+    // ==========================================
+    // ACT 0: INTRO SEQUENCE (0.0s - 4.5s)
+    // ==========================================
+    tl.fromTo("#clip-intro", 
+      { opacity: 1 }, 
+      { opacity: 1, duration: 3.5 }, 
+      0
+    );
+    tl.from(".intro-badge", { y: -20, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.2);
+    tl.from(".intro-h1", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" }, 0.4);
+    tl.from(".intro-sub", { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" }, 0.8);
+    tl.to("#clip-intro", { opacity: 0, y: -30, duration: 0.6, ease: "power2.in" }, 4.0);
+
+    // ==========================================
+    // ACT 1: 13 COLONIES & INDEPENDENCE (4.5s - 14.0s)
+    // ==========================================
+    // Camera zoom into East Coast
+    tl.set({}, {}, 4.5);
+    tl.call(() => {
+      hudChapterTag.textContent = "CHAPTER 01";
+      hudChapterTitle.textContent = "THE 13 COLONIES & INDEPENDENCE";
+      document.getElementById("ms1776").classList.add("active");
+    }, null, 4.5);
+
+    // Smooth camera push to Atlantic seaboard
+    tl.fromTo("#mapCanvas", 
+      { scale: 1, x: 0, y: 0 },
+      { scale: 1.55, x: -320, y: 30, duration: 2.2, ease: "power3.inOut" },
+      4.5
+    );
+
+    // Reveal 13 Colonies in deep blue
+    tl.fromTo("#region13Colonies", 
+      { fill: "#e8e3d5", strokeWidth: 1 },
+      { fill: "#1c3966", strokeWidth: 3.5, duration: 1.4, ease: "power2.out" },
+      4.8
+    );
+
+    // Show Philly Pin
+    tl.to("#pinPhilly", { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" }, 5.5);
+
+    // Slide in Act 1 Editorial Card
+    tl.to("#clip-act1", { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 5.2);
+
+    // Year tick: 1776 -> 1789
+    tl.to({ yr: 1776 }, {
+      yr: 1789,
+      duration: 8.5,
+      ease: "none",
+      onUpdate: function() {
+        const val = Math.round(this.targets()[0].yr);
+        hudCurrentYear.textContent = val;
+        needleYear.textContent = val;
+      }
+    }, 5.0);
+
+    // Exit Act 1 Card
+    tl.to("#clip-act1", { opacity: 0, x: -40, duration: 0.6, ease: "power2.in" }, 13.4);
+    tl.to("#pinPhilly", { opacity: 0, duration: 0.4 }, 13.6);
+
+    // ==========================================
+    // ACT 2: MANIFEST DESTINY & WESTERN EXPANSION (14.0s - 26.0s)
+    // ==========================================
+    tl.call(() => {
+      hudChapterTag.textContent = "CHAPTER 02";
+      hudChapterTitle.textContent = "WESTWARD EXPANSION & MANIFEST DESTINY";
+      document.getElementById("ms1803").classList.add("active");
+    }, null, 14.0);
+
+    // Camera pans out and shifts west
+    tl.to("#mapCanvas", {
+      scale: 1.25,
+      x: 120,
+      y: 10,
+      duration: 2.4,
+      ease: "power3.inOut"
+    }, 14.0);
+
+    // Slide in Act 2 Card
+    tl.to("#clip-act2", { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 14.5);
+
+    // 1803: Louisiana Purchase floods in with hatch pattern & gold fill
+    tl.to("#regionLouisiana", {
+      opacity: 0.95,
+      duration: 1.6,
+      ease: "power2.out"
+    }, 14.8);
+    tl.to("#pinNOLA", { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" }, 15.5);
+
+    // 1845 - 1848: Annexations & Pacific coast
+    tl.to("#regionTexas", { opacity: 0.9, duration: 1.0, ease: "power2.out" }, 18.0);
+    tl.to("#regionOregon", { opacity: 0.9, duration: 1.0, ease: "power2.out" }, 19.2);
+    tl.to("#regionMexicanCession", { opacity: 0.9, duration: 1.2, ease: "power2.out" }, 20.4);
+    tl.to("#pinSF", { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" }, 21.0);
+
+    // Animate Oregon Trail path
+    tl.to("#trailOregon", {
+      opacity: 1,
+      duration: 0.4
+    }, 19.5);
+
+    // Year tick: 1803 -> 1850
+    tl.to({ yr: 1803 }, {
+      yr: 1850,
+      duration: 11.0,
+      ease: "none",
+      onUpdate: function() {
+        const val = Math.round(this.targets()[0].yr);
+        hudCurrentYear.textContent = val;
+        needleYear.textContent = val;
+      }
+    }, 14.5);
+
+    // Exit Act 2 elements
+    tl.to("#clip-act2", { opacity: 0, x: -40, duration: 0.6, ease: "power2.in" }, 25.4);
+    tl.to(["#pinNOLA", "#pinSF", "#trailOregon"], { opacity: 0, duration: 0.4 }, 25.6);
+
+    // ==========================================
+    // ACT 3: CIVIL WAR & THE PRESERVED UNION (26.0s - 38.0s)
+    // ==========================================
+    tl.call(() => {
+      hudChapterTag.textContent = "CHAPTER 03";
+      hudChapterTitle.textContent = "A HOUSE DIVIDED // CIVIL WAR";
+      document.getElementById("ms1861").classList.add("active");
+    }, null, 26.0);
+
+    // Camera re-centers on eastern half
+    tl.to("#mapCanvas", {
+      scale: 1.45,
+      x: -160,
+      y: 0,
+      duration: 2.0,
+      ease: "power3.inOut"
+    }, 26.0);
+
+    // Map fracture: Union vs Confederacy
+    tl.to("#unionNorth", { opacity: 0.9, duration: 1.0, ease: "power2.out" }, 26.6);
+    tl.to("#confedSouth", { opacity: 0.9, duration: 1.0, ease: "power2.out" }, 27.0);
+    tl.to("#fractureLine", { opacity: 1, duration: 0.6 }, 27.4);
+
+    // Slide in Act 3 Card (right side)
+    tl.to("#clip-act3", { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 26.8);
+
+    // DC Pin
+    tl.to("#pinDC", { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" }, 28.0);
+
+    // Year tick: 1861 -> 1865
+    tl.to({ yr: 1861 }, {
+      yr: 1865,
+      duration: 10.5,
+      ease: "none",
+      onUpdate: function() {
+        const val = Math.round(this.targets()[0].yr);
+        hudCurrentYear.textContent = val;
+        needleYear.textContent = val;
+      }
+    }, 26.5);
+
+    // 1865: Fracture heals! Re-unification animation
+    tl.to("#fractureLine", { opacity: 0, duration: 0.8, ease: "power2.in" }, 34.5);
+    tl.to("#confedSouth", { fill: "#1c3966", opacity: 0.75, duration: 1.5, ease: "power2.out" }, 35.0);
+    tl.to("#unionNorth", { opacity: 0.75, duration: 1.5, ease: "power2.out" }, 35.0);
+
+    // Exit Act 3
+    tl.to("#clip-act3", { opacity: 0, x: 40, duration: 0.6, ease: "power2.in" }, 37.4);
+    tl.to("#pinDC", { opacity: 0, duration: 0.4 }, 37.6);
+
+    // ==========================================
+    // ACT 4: TRANSCONTINENTAL RAILROAD & INDUSTRIAL BOOM (38.0s - 50.0s)
+    // ==========================================
+    tl.call(() => {
+      hudChapterTag.textContent = "CHAPTER 04";
+      hudChapterTitle.textContent = "THE INDUSTRIAL TITAN & GLOBAL POWER";
+      document.getElementById("ms1869").classList.add("active");
+    }, null, 38.0);
+
+    // Reset map color to warm unified tone
+    tl.to(["#unionNorth", "#confedSouth"], { opacity: 0, duration: 1.0 }, 38.0);
+
+    // Camera zooms out to show full continental span
+    tl.to("#mapCanvas", {
+      scale: 1.15,
+      x: 40,
+      y: 10,
+      duration: 2.2,
+      ease: "power3.inOut"
+    }, 38.0);
+
+    // Slide in Act 4 Card
+    tl.to("#clip-act4", { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 38.5);
+
+    // Railroad construction lines race toward Utah
+    tl.to(["#railWest", "#railEast"], { opacity: 1, duration: 0.3 }, 39.0);
+    tl.to("#spikePoint", { opacity: 1, duration: 0.3 }, 40.5);
+    tl.to("#pinUtah", { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.5)" }, 40.6);
+    tl.to("#spikeBadge", { scale: 1, duration: 0.5, ease: "back.out(2)" }, 41.0);
+
+    // Industrial output bar animation
+    tl.fromTo("#barUSA", { width: "0%" }, { width: "32%", duration: 1.2, ease: "power3.out" }, 43.5);
+
+    // Year tick: 1869 -> 1945
+    tl.to({ yr: 1869 }, {
+      yr: 1945,
+      duration: 11.0,
+      ease: "none",
+      onUpdate: function() {
+        const val = Math.round(this.targets()[0].yr);
+        hudCurrentYear.textContent = val;
+        needleYear.textContent = val;
+      }
+    }, 38.5);
+
+    // Exit Act 4
+    tl.to("#clip-act4", { opacity: 0, x: -40, duration: 0.6, ease: "power2.in" }, 49.2);
+    tl.to(["#railWest", "#railEast", "#spikePoint", "#pinUtah", "#spikeBadge"], { opacity: 0, duration: 0.4 }, 49.4);
+
+    // ==========================================
+    // ACT 5: 50-STAR MODERN UNION & OUTRO (50.0s - 60.0s)
+    // ==========================================
+    tl.call(() => {
+      hudChapterTag.textContent = "CHAPTER 05";
+      hudChapterTitle.textContent = "THE 50 STATES & MODERN SUPERPOWER";
+      document.getElementById("ms1945").classList.add("active");
+      document.getElementById("msTODAY").classList.add("active");
+    }, null, 50.0);
+
+    // Animate 50 stars overlay in staggered burst
+    tl.to("#starsOverlay", { opacity: 1, duration: 0.4 }, 50.2);
+    tl.to(".star-dot", {
+      scale: 1,
+      duration: 0.3,
+      stagger: {
+        each: 0.02,
+        from: "random"
+      },
+      ease: "back.out(2)"
+    }, 50.4);
+
+    // Reveal Act 5 Full Screen Recap & Conclusion
+    tl.to("#clip-act5", { opacity: 1, duration: 0.8, ease: "power3.out" }, 51.5);
+    tl.from(".recap-box", {
+      y: 40,
+      opacity: 0,
+      duration: 0.6,
+      stagger: 0.15,
+      ease: "power3.out"
+    }, 52.0);
+    tl.from(".conclusion-banner", {
+      y: 30,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out"
+    }, 54.0);
+
+    // Year tick: 1945 -> 2026
+    tl.to({ yr: 1945 }, {
+      yr: 2026,
+      duration: 8.0,
+      ease: "power1.out",
+      onUpdate: function() {
+        const val = Math.round(this.targets()[0].yr);
+        hudCurrentYear.textContent = val;
+        needleYear.textContent = val;
+      }
+    }, 50.5);
+
+    // HyperFrames contract registration
+    window.__timelines = window.__timelines || {};
+    window.__timelines["main"] = tl;
   </script>
 </body>
 </html>
