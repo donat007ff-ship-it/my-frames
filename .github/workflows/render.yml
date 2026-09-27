@@ -1,0 +1,37 @@
+name: Render HyperFrames Video
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install System Dependencies & FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Render Video
+        run: npx hyperframes render
+
+      - name: Upload Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-video
+          path: "**/*.mp4"
+          if-no-files-found: error
+          retention-days: 1

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1920px;
+      height: 1080px;
+      background: #090d16;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+    }
+    h1 {
+      font-size: 72px;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    p {
+      font-size: 32px;
+      color: #94a3b8;
+      opacity: 0;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+  <h1 id="title">HyperFrames Cloud Render</h1>
+  <p id="desc">Сгенерировано через GitHub Actions</p>
+
+  <script>
+    const tl = gsap.timeline();
+    tl.to("#title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" })
+      .to("#desc", { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.4");
+  </script>
+</body>
+</html>
